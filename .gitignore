@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python
 __pycache__/
 *.py[cod]
@@ -28,3 +29,7 @@ instance/
 # OS files
 .DS_Store
 Thumbs.db
+=======
+.env
+backend/src/.env
+>>>>>>> 15f8240b92093295a776aae4906710296d474a8f
