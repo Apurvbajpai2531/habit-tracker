@@ -27,3 +27,4 @@ instance/
 *.log
 
 # OS files
+.env
