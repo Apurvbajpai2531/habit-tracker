@@ -13,11 +13,14 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Initialize extensions
+    # Extensions
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-    cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+    cors.init_app(
+        app,
+        resources={r"/api/*": {"origins": "*"}}
+    )
 
     # Logging
     logging.basicConfig(
@@ -25,16 +28,23 @@ def create_app(config_class=Config):
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
-    # Register blueprints
-    app.register_blueprint(auth_bp, url_prefix="/api/auth")
-    app.register_blueprint(habit_bp, url_prefix="/api")
+    # Routes
+    app.register_blueprint(
+        auth_bp,
+        url_prefix="/api/auth"
+    )
+
+    app.register_blueprint(
+        habit_bp,
+        url_prefix="/api"
+    )
 
     # Health Check
     @app.get("/api/health")
     def health():
         return {"status": "ok"}, 200
 
-    # Error Handlers
+    # Error handlers
     @app.errorhandler(404)
     def not_found(e):
         return error("Route not found", 404)
@@ -44,8 +54,9 @@ def create_app(config_class=Config):
         app.logger.exception(e)
         return error("Internal server error", 500)
 
-    with app.app_context():
-        db.create_all()
+    # IMPORTANT:
+    # REMOVE db.create_all()
+    # Use Flask-Migrate instead
 
     return app
 
