@@ -22,7 +22,11 @@ if not habits:
     st.stop()
 
 habit_names = {h["id"]: h["name"] for h in habits}
-selected_id = st.selectbox("Habit chuno", options=list(habit_names.keys()), format_func=lambda x: habit_names[x])
+selected_id = st.selectbox(
+    "Habit chuno",
+    options=list(habit_names.keys()),
+    format_func=lambda x: habit_names[x],
+)
 
 try:
     data = api.get_insights(selected_id)

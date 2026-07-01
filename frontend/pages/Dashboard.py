@@ -65,14 +65,16 @@ else:
                 )
                 note = st.text_input("Note (optional)", key=f"note_{habit['id']}")
 
-if st.button("✅ Mark done today", key=f"checkin_{habit['id']}", use_container_width=True):
-                    try:
-                        result = api.checkin(habit["id"], mood, note or None)
-                        if result.get("leveled_up"):
-                            st.balloons()
-                            st.success(f"🎉 Level Up! Ab tum Level {result['level']} ho!")
-                        else:
-                            st.success(f"Check-in saved! +{result.get('earned_xp', 0)} XP 🎯")
-                        st.rerun()
-                    except api.APIError as e:
-                        st.error(e.message)
+if st.button(
+    "✅ Mark done today", key=f"checkin_{habit['id']}", use_container_width=True
+):
+    try:
+        result = api.checkin(habit["id"], mood, note or None)
+        if result.get("leveled_up"):
+            st.balloons()
+            st.success(f"🎉 Level Up! Ab tum Level {result['level']} ho!")
+        else:
+            st.success(f"Check-in saved! +{result.get('earned_xp', 0)} XP 🎯")
+        st.rerun()
+    except api.APIError as e:
+        st.error(e.message)

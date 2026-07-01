@@ -16,10 +16,12 @@ def error(message="Something went wrong", status=400, details=None):
 
 def handle_validation_errors(fn):
     """Decorator: marshmallow validation errors ko clean JSON response me convert karta hai."""
+
     @wraps(fn)
     def wrapper(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
         except ValidationError as e:
             return error("Validation failed", 422, e.messages)
+
     return wrapper

@@ -17,10 +17,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-    cors.init_app(
-        app,
-        resources={r"/api/*": {"origins": "*"}}
-    )
+    cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
 
     # Logging
     logging.basicConfig(
@@ -29,15 +26,9 @@ def create_app(config_class=Config):
     )
 
     # Routes
-    app.register_blueprint(
-        auth_bp,
-        url_prefix="/api/auth"
-    )
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
-    app.register_blueprint(
-        habit_bp,
-        url_prefix="/api"
-    )
+    app.register_blueprint(habit_bp, url_prefix="/api")
 
     # Health Check
     @app.get("/api/health")

@@ -23,7 +23,9 @@ def register():
     db.session.commit()
 
     token = create_access_token(identity=str(user.id))
-    return success({"user": user.to_dict(), "access_token": token}, "Account ban gaya", 201)
+    return success(
+        {"user": user.to_dict(), "access_token": token}, "Account ban gaya", 201
+    )
 
 
 @auth_bp.post("/login")
