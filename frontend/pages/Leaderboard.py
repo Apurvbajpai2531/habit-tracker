@@ -18,8 +18,14 @@ try:
     else:
         df = pd.DataFrame(data)
         df.index = df.index + 1
-        df.insert(0, "Rank", ["🥇", "🥈", "🥉"] + [str(i) for i in range(4, len(df) + 1)])
+        df.insert(
+            0, "Rank", ["🥇", "🥈", "🥉"] + [str(i) for i in range(4, len(df) + 1)]
+        )
         df = df.drop(columns=df.index.name, errors="ignore")
-        st.dataframe(df[["Rank", "email", "level", "xp"]], use_container_width=True, hide_index=True)
+        st.dataframe(
+            df[["Rank", "email", "level", "xp"]],
+            use_container_width=True,
+            hide_index=True,
+        )
 except api.APIError as e:
     st.error(e.message)

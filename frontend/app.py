@@ -47,9 +47,13 @@ def show_auth_forms():
         with st.form("register_form"):
             email = st.text_input("Email", key="reg_email")
             password = st.text_input(
-                "Password (kam se kam 6 characters)", type="password", key="reg_password"
+                "Password (kam se kam 6 characters)",
+                type="password",
+                key="reg_password",
             )
-            confirm = st.text_input("Confirm Password", type="password", key="reg_confirm")
+            confirm = st.text_input(
+                "Confirm Password", type="password", key="reg_confirm"
+            )
             submitted = st.form_submit_button("Account banao", use_container_width=True)
 
         if submitted:

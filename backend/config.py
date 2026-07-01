@@ -12,7 +12,7 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,   # connection drop hone par auto-reconnect
+        "pool_pre_ping": True,  # connection drop hone par auto-reconnect
         "pool_recycle": 280,
     }
 
@@ -22,5 +22,6 @@ class Config:
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "TEST_DATABASE_URL", "postgresql://habit_user:habit_pass@localhost:5432/habit_db_test"
+        "TEST_DATABASE_URL",
+        "postgresql://habit_user:habit_pass@localhost:5432/habit_db_test",
     )

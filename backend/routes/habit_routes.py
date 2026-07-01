@@ -1,4 +1,5 @@
 from datetime import date
+from urllib import response
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import Schema, fields, validate, ValidationError
@@ -17,7 +18,9 @@ class HabitSchema(Schema):
 
 class CheckInSchema(Schema):
     mood = fields.Int(required=True, validate=validate.Range(min=1, max=5))
-    note = fields.Str(required=False, allow_none=True, validate=validate.Length(max=255))
+    note = fields.Str(
+        required=False, allow_none=True, validate=validate.Length(max=255)
+    )
 
 
 habit_schema = HabitSchema()
@@ -38,15 +41,19 @@ def list_habits():
     page = request.args.get("page", 1, type=int)
     per_page = min(request.args.get("per_page", 20, type=int), 100)
 
-    query = Habit.query.filter_by(user_id=user_id, is_active=True).order_by(Habit.id.desc())
+    query = Habit.query.filter_by(user_id=user_id, is_active=True).order_by(
+        Habit.id.desc()
+    )
     paginated = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    return success({
-        "items": [h.to_dict(with_stats=True) for h in paginated.items],
-        "page": page,
-        "total_pages": paginated.pages,
-        "total_items": paginated.total,
-    })
+    return success(
+        {
+            "items": [h.to_dict(with_stats=True) for h in paginated.items],
+            "page": page,
+            "total_pages": paginated.pages,
+            "total_items": paginated.total,
+        }
+    )
 
 
 @habit_bp.post("")
@@ -70,7 +77,7 @@ def delete_habit(habit_id):
     if not habit:
         return error("Habit nahi mila", 404)
 
-    habit.is_active = False   # soft delete — history preserve rehti hai
+    habit.is_active = False  # soft delete — history preserve rehti hai
     db.session.commit()
     return success(message="Habit removed")
 
@@ -80,6 +87,7 @@ def delete_habit(habit_id):
 @handle_validation_errors
 def checkin(habit_id):
     from models import User
+
     user_id = int(get_jwt_identity())
     habit = _owned_habit_or_404(habit_id, user_id)
     if not habit:
@@ -100,11 +108,12 @@ def checkin(habit_id):
 
     # ---- XP logic: base 10 XP + streak bonus + mood bonus ----
     from utils import calculate_streaks
+
     all_dates = [c.done_on for c in habit.checkins.all()] + [date.today()]
     current_streak, _ = calculate_streaks(all_dates)
 
     base_xp = 10
-    streak_bonus = min(current_streak * 2, 50)   # max 50 bonus XP
+    streak_bonus = min(current_streak * 2, 50)  # max 50 bonus XP
     mood_bonus = payload["mood"] * 2
     earned_xp = base_xp + streak_bonus + mood_bonus
 
@@ -135,15 +144,24 @@ def get_checkins(habit_id):
     entries = habit.checkins.order_by(CheckIn.done_on).all()
     return success([e.to_dict() for e in entries])
 
+
 @habit_bp.get("/leaderboard")
 @jwt_required()
 def leaderboard():
     from models import User
+
     top_users = User.query.order_by(User.xp.desc()).limit(10).all()
-    return success([
-        {"email": u.email[:3] + "***", "xp": u.xp, "level": u.level}  # privacy: email partially hidden
-        for u in top_users
-    ])
+    return success(
+        [
+            {
+                "email": u.email[:3] + "***",
+                "xp": u.xp,
+                "level": u.level,
+            }  # privacy: email partially hidden
+            for u in top_users
+        ]
+    )
+
 
 @habit_bp.get("/<int:habit_id>/insights")
 @jwt_required()
@@ -160,7 +178,9 @@ def get_insights(habit_id):
     insights = []
 
     if len(entries) < 3:
-        return success({"insights": ["Insights dekhne ke liye kam se kam 3 check-ins chahiye."]})
+        return success(
+            {"insights": ["Insights dekhne ke liye kam se kam 3 check-ins chahiye."]}
+        )
 
     # 1) Best day of week (consistency pattern)
     day_counts = defaultdict(int)
@@ -171,37 +191,60 @@ def get_insights(habit_id):
         day_moods[day_name].append(e.mood)
 
     best_day = max(day_counts, key=day_counts.get)
-    insights.append(f"📅 Tum is habit ko sabse zyada **{best_day}** ke din follow karte ho ({day_counts[best_day]} baar).")
+    insights.append(
+        f"📅 Tum is habit ko sabse zyada **{best_day}** ke din follow karte ho ({day_counts[best_day]} baar)."
+    )
 
     # 2) Best mood day
-    avg_mood_by_day = {d: round(statistics.mean(m), 1) for d, m in day_moods.items() if len(m) >= 1}
+    avg_mood_by_day = {
+        d: round(statistics.mean(m), 1) for d, m in day_moods.items() if len(m) >= 1
+    }
     if avg_mood_by_day:
         happiest_day = max(avg_mood_by_day, key=avg_mood_by_day.get)
-        insights.append(f"😊 **{happiest_day}** ko tumhara mood sabse better rehta hai (avg {avg_mood_by_day[happiest_day]}/5).")
+        insights.append(
+            f"😊 **{happiest_day}** ko tumhara mood sabse better rehta hai (avg {avg_mood_by_day[happiest_day]}/5)."
+        )
 
     # 3) Mood trend (improving / declining / stable)
     moods = [e.mood for e in entries]
     if len(moods) >= 6:
         first_half_avg = statistics.mean(moods[: len(moods) // 2])
-        second_half_avg = statistics.mean(moods[len(moods) // 2 :])
+        second_half_avg = statistics.mean(moods[len(moods) // 2:])
         diff = second_half_avg - first_half_avg
         if diff > 0.3:
-            insights.append(f"📈 Tumhara mood is habit me **improve** ho raha hai ({first_half_avg:.1f} → {second_half_avg:.1f}).")
+            insights.append(
+                f"📈 Tumhara mood is habit me **improve** ho raha hai ({first_half_avg:.1f} → {second_half_avg:.1f})."
+            )
         elif diff < -0.3:
-            insights.append(f"📉 Tumhara mood thoda **decline** kar raha hai ({first_half_avg:.1f} → {second_half_avg:.1f}). Kya kuch badal gaya hai?")
+            insights.append(
+                f"📉 Tumhara mood thoda **decline** kar raha hai ({first_half_avg:.1f} → {second_half_avg:.1f}). Kya kuch badal gaya hai?"
+            )
         else:
             insights.append("➡️ Mood consistent hai, koi major change nahi.")
 
     # 4) Consistency score
     from utils import calculate_streaks
+
     dates = [e.done_on for e in entries]
     current_streak, longest_streak = calculate_streaks(dates)
     total_days_span = (dates[-1] - dates[0]).days + 1
-    consistency_pct = round((len(set(dates)) / total_days_span) * 100, 1) if total_days_span > 0 else 100
+    consistency_pct = (
+        round((len(set(dates)) / total_days_span) * 100, 1)
+        if total_days_span > 0
+        else 100
+    )
 
-    insights.append(f"🎯 Consistency score: **{consistency_pct}%** ({len(set(dates))} check-ins / {total_days_span} din).")
+    insights.append(
+        f"🎯 Consistency score: **{consistency_pct}%** ({len(set(dates))} check-ins / {total_days_span} din)."
+    )
 
     if current_streak == 0 and longest_streak > 2:
-        insights.append(f"⚠️ Tumhara streak toot gaya hai. Best streak tha **{longest_streak} din** — wapas try karo!")
+        insights.append(
+            f"⚠️ Tumhara streak toot gaya hai. Best streak tha **{longest_streak} din** — wapas try karo!"
+        )
 
-    return success({"insights": insights, "consistency_pct": consistency_pct})
+    response = {
+    "insights": insights,
+    "consistency_pct": consistency_pct
+}
+    return success(response)

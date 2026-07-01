@@ -24,7 +24,9 @@ if not habits:
 
 habit_names = {h["id"]: h["name"] for h in habits}
 selected_id = st.selectbox(
-    "Habit chuno", options=list(habit_names.keys()), format_func=lambda x: habit_names[x]
+    "Habit chuno",
+    options=list(habit_names.keys()),
+    format_func=lambda x: habit_names[x],
 )
 
 try:
@@ -43,10 +45,15 @@ else:
     col1, col2, col3 = st.columns(3)
     col1.metric("Total check-ins", len(df))
     col2.metric("Average mood", round(df["mood"].mean(), 2))
-    col3.metric("Best mood day", df.loc[df["mood"].idxmax(), "done_on"].strftime("%d %b"))
+    col3.metric(
+        "Best mood day", df.loc[df["mood"].idxmax(), "done_on"].strftime("%d %b")
+    )
 
     fig = px.line(
-        df, x="done_on", y="mood", markers=True,
+        df,
+        x="done_on",
+        y="mood",
+        markers=True,
         title=f"Mood trend — {habit_names[selected_id]}",
         labels={"done_on": "Date", "mood": "Mood (1-5)"},
     )

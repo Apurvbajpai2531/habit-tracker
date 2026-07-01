@@ -39,8 +39,12 @@ def _handle_response(resp):
 def _request(method, path, json=None, params=None, timeout=8):
     try:
         resp = requests.request(
-            method, f"{API_URL}{path}", json=json, params=params,
-            headers=_headers(), timeout=timeout,
+            method,
+            f"{API_URL}{path}",
+            json=json,
+            params=params,
+            headers=_headers(),
+            timeout=timeout,
         )
     except requests.ConnectionError:
         raise APIError("Backend se connect nahi ho paya. Backend chal raha hai kya?")
@@ -52,11 +56,15 @@ def _request(method, path, json=None, params=None, timeout=8):
 
 # ---------- Auth ----------
 def register(email, password):
-    return _request("POST", "/api/auth/register", json={"email": email, "password": password})
+    return _request(
+        "POST", "/api/auth/register", json={"email": email, "password": password}
+    )
 
 
 def login(email, password):
-    return _request("POST", "/api/auth/login", json={"email": email, "password": password})
+    return _request(
+        "POST", "/api/auth/login", json={"email": email, "password": password}
+    )
 
 
 def get_me():
@@ -77,11 +85,14 @@ def delete_habit(habit_id):
 
 
 def checkin(habit_id, mood, note=None):
-    return _request("POST", f"/api/habits/{habit_id}/checkin", json={"mood": mood, "note": note})
+    return _request(
+        "POST", f"/api/habits/{habit_id}/checkin", json={"mood": mood, "note": note}
+    )
 
 
 def get_checkins(habit_id):
     return _request("GET", f"/api/habits/{habit_id}/checkins")
+
 
 def get_leaderboard():
     return _request("GET", "/api/habits/leaderboard")
